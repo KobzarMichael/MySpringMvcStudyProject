@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/html">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>все люди</title>
 </head>
 <body>
+<!--с помощью таймлиф делаем цикл для отображения списка людей с пом. цикла-->
 <div th:each="person : ${people}">
     <a th:href="@{/people/{id}(id=${person.getId()})}" th:text="${person.getName()}">user</a>
 </div>
 </br>
-<a href="/people/new">NEW</a>
+<a th:href="@{/people/new}">Create new person</a>
+
 
 </body>
 </html>
