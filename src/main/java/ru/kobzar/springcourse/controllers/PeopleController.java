@@ -3,9 +3,12 @@ package ru.kobzar.springcourse.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.kobzar.springcourse.dao.PersonDAO;
 import ru.kobzar.springcourse.models.Person;
+
+import javax.validation.Valid;
 
 /*
 Собственно тут контроллер - на него (ну почти) приходит http запрос от клиента и этот господин решает, что в ответ ему
@@ -55,7 +58,14 @@ public class PeopleController {
     //тут мы получаем данные из формы new, чтобы дальше добавить человека в список (бд)
     @PostMapping()
     //с пом. аннотации @ModelAttribute мы можем получить данные (person) из формы
-    public String create(@ModelAttribute("person") Person person) {
+    //@Valid - проверяет в данном случае поля класса персон на валидность (аннотации валидации прописаны в классе)
+    //ПОСЛЕ ОБЪЕКТА С АННОТАЦИЕЙ @Valid ОБЯЗАТЕЛЬНО НУЖЕН АРГУМЕНТ BindingResult bindingResult
+    public String create(@ModelAttribute("person") @Valid Person person, BindingResult bindingResult) {
+
+        //тут мы собственно проверяем есть ли ошибки валидации после проверки и если есть то по новой кидает
+        //клиент на страницу создания, НО УЖЕ С УКАЗАНИЕМ ОШИБОК (за отображение ошибок отвечает уже таймлиф)
+        if (bindingResult.hasErrors()) return "people/new";
+
         personDAO.save(person);
         //после создания пользователя просто возвращаем страницу с общим списком людей
         return "redirect:/people";
@@ -64,7 +74,7 @@ public class PeopleController {
     //запрос на апдейт человека
     //в маппинге передаем нужный адрес страницы
     @GetMapping("/{id}/edit")
-    //с помощью @PathVariabl сохраняем айди из адреса в переменную
+    //с помощью @PathVariable сохраняем айди из адреса в переменную
     public String edit (Model model, @PathVariable ("id") int id) {
         //передаем человека в модель (чтоб дальше передать в представление)
         model.addAttribute("person", personDAO.show(id));
@@ -76,7 +86,14 @@ public class PeopleController {
     @PatchMapping ("/{id}")
     // с пом. аннотации @ModelAttribute мы можем получить данные (person) из формы
     // с @PathVariable мы получаем айди из адреса и сохраняем его в переменную id
-    public String update (@ModelAttribute ("person") Person person, @PathVariable("id") int id) {
+    //@Valid - проверяет в данном случае поля класса персон на валидность (аннотации валидации прописаны в классе)
+    //ПОСЛЕ ОБЪЕКТА С АННОТАЦИЕЙ @Valid ОБЯЗАТЕЛЬНО НУЖЕН АРГУМЕНТ BindingResult bindingResult
+    public String update (@ModelAttribute ("person") @Valid Person person, BindingResult bindingResult,
+                          @PathVariable("id") int id) {
+        //тут мы собственно проверяем есть ли ошибки валидации после проверки и если есть то по новой кидает
+        //клиент на страницу изменения человека, НО УЖЕ С УКАЗАНИЕМ ОШИБОК (за отображение ошибок отвечает уже таймлиф)
+        if (bindingResult.hasErrors()) return "people/edit";
+
         personDAO.update(id, person);
         return "redirect:/people";
     }
