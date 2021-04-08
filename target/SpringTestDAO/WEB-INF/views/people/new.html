@@ -10,6 +10,7 @@
 <form th:method="POST" th:action="@{/people}" th:object="${person}">
     <label for="name">Enter name: </label>
     <input type="text" th:field="*{name}" id="name"/>
+<!--ниже представлен синтаксис таймлифа для отображения ошибок-->
     <div style="color:red" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"> error </div>
 
     <label for="age">Enter age: </label>
