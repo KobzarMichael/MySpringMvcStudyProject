@@ -50,7 +50,7 @@ public class PersonDAO {
             ResultSet resultSet = statement.executeQuery(SQL);
 
             //с помощью итератора проходимся по данным в бд
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 Person person = new Person();
 
                 //вытягиваем данные и сохраняем их с помощью методов ниже в новый объект Person
@@ -70,8 +70,29 @@ public class PersonDAO {
     }
 
     public Person show(int id) {
-//        return people.stream().filter(person -> person.getId() == id).findAny().orElse(null);
-        return null;
+        Person person = null;
+        try {
+            //пишем скл запрос
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM person WHERE id=?");
+            //передаем в него айди
+            preparedStatement.setInt(1, id);
+            //создаем резалтсет (который инкапсулирует в себе объект из таблицы) и вызываем метод executeQuery() (выполнить запрос скл)
+            ResultSet resultSet = preparedStatement.executeQuery();
+            //один раз вызываем метод некст (так как сейчас у нас везде айди=1)
+            resultSet.next();
+
+            person = new Person();
+            //передаем в новый объект персон данные из резалтсета
+            person.setId(resultSet.getInt("id"));
+            person.setName(resultSet.getString("name"));
+            person.setAge(resultSet.getInt("age"));
+            person.setEmail(resultSet.getString("email"));
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return person;
     }
 
     public void save(Person person) {
@@ -80,30 +101,50 @@ public class PersonDAO {
 
         //сохранение нового пользователя в бд
         try {
-            //создаем стейтмент
-            Statement statement = connection.createStatement();
-            //опять сохраняем синтаксис скл запроса в переменной (в целях обучения)
-            String SQL = "INSERT INTO Person VALUES(" + 1 + ",'" + person.getName() +
-                    "'," + person.getAge() + ",'" + person.getEmail() + "')";
-
+            //создаем стейтмент тут мы используем препеирдстейтмент, чтобы избежать инъекций в скл код
+            //ЛУЧШЕ ВСЕГДА ЮЗАТЬ ПРЕПЕИРД СТЕЙТМЕНТ, Т.К. ОН БЫСТРЕЕ (КОД КОМПИЛИРУЕТСЯ ОДИН РАЗ, А ПОТОМ В НЕГО ПРОСТО
+            //ДОБАВЛЯЮТСЯ ЗНАЧЕНИЯ) ПЛЮС НЕТ ШАНСА СДЕЛАТЬ ИНЪЕКЦИЮ В КОД
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO person VALUES (1,?,?,?)");
+            //тут мы добавляем нужные значения в запрос connection.prepareStatement
+            preparedStatement.setString(1, person.getName());
+            preparedStatement.setInt(2, person.getAge());
+            preparedStatement.setString(3, person.getEmail());
             //с помощью метода executeUpdate сохраняем данные в бд
-            statement.executeUpdate(SQL);
+            preparedStatement.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
 
-
     }
 
     public void update(int id, Person updatedPerson) {
-//        Person personToBeUpdated = show(id);
-//
-//        personToBeUpdated.setName(updatedPerson.getName());
-//        personToBeUpdated.setAge(updatedPerson.getAge());
-//        personToBeUpdated.setEmail(updatedPerson.getEmail());
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement("UPDATE person set name=?, age=?, email=? WHERE id=?");
+
+            preparedStatement.setString(1, updatedPerson.getName());
+            preparedStatement.setInt(2, updatedPerson.getAge());
+            preparedStatement.setString(3, updatedPerson.getEmail());
+            preparedStatement.setInt(4, id);
+
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
     public void delete(int id) {
-//        people.removeIf(p -> p.getId() == id);
+        PreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = connection.prepareStatement("DELETE FROM person WHERE id=?");
+
+            preparedStatement.setInt(1, id);
+
+            preparedStatement.executeUpdate();
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 }
