@@ -5,12 +5,17 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
+
+import javax.sql.DataSource;
+
 //Spring config class with thymeleaf template
 @Configuration
 @ComponentScan("ru.kobzar.springcourse")
@@ -50,5 +55,25 @@ public class SpringConfig implements WebMvcConfigurer {
         ThymeleafViewResolver resolver = new ThymeleafViewResolver();
         resolver.setTemplateEngine(templateEngine());
         registry.viewResolver(resolver);
+    }
+
+    @Bean
+    //тут мы создаем бин датасоурса (в нем указываются данные для подруба датабейса) for JDBC TEMPLATE usage
+    public DataSource dataSource() {
+
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        //указываем данные
+        dataSource.setDriverClassName("org.postgresql.Driver");
+        dataSource.setUrl("jdbc:postgresql://localhost:5432/first_db");
+        dataSource.setUsername("postgres");
+        dataSource.setPassword("3648");
+
+        return dataSource;
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate() {
+        //тут внедряем зависимость с датасорс
+        return new JdbcTemplate(dataSource());
     }
 }
